@@ -13,6 +13,7 @@ extends CharacterBody2D
 @export_range(0.0, 1.0) var jump_release_stop_multiplier: float = 0.5
 
 @export_range(0.0, 1.0) var coyote_duration: float = 0.1
+@export_range(0.0, 1.0) var jump_buffer_duration: float = 0.12
 
 
 var is_jumping: bool = false
@@ -32,7 +33,7 @@ var facing_right: bool = true
 func _ready():	
 	facing_right_x_offset = sprite.position.x
 	facing_left_x_offset = -sprite.position.x
-	Engine.time_scale = 0.1
+	# Engine.time_scale = 0.1
 
 func _physics_process(delta):
 
@@ -40,7 +41,12 @@ func _physics_process(delta):
 	if is_on_floor():
 		is_jumping = false
 
-		if Input.is_action_just_pressed("ui_accept"):
+		if is_jump_buffer and not was_on_floor:
+			velocity.y = -jump_velocity
+			is_jumping = true
+			is_jump_buffer = false
+			jump_buffer_timer.stop()
+		elif Input.is_action_just_pressed("ui_accept"):
 			velocity.y = -jump_velocity
 			is_jumping = true
 
@@ -70,7 +76,7 @@ func _physics_process(delta):
 				is_coyote = false
 				coyote_timer.stop()
 			elif not is_jump_buffer:
-				pass # TODO: Implement jump buffer initiation
+				start_jump_buffer()
 
 		# Add extra gravity when falling
 		if is_jumping and velocity.y > 0:
@@ -132,3 +138,10 @@ func start_coyote(delta):
 
 func _on_coyote_timer_timeout():
 	is_coyote = false
+
+func start_jump_buffer():
+	jump_buffer_timer.start(jump_buffer_duration)
+	is_jump_buffer = true
+
+func _on_jump_buffer_timer_timeout():
+	is_jump_buffer = false
