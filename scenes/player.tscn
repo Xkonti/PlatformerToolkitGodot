@@ -180,6 +180,8 @@ animations = [{
 script = ExtResource("1_7srcc")
 speed = 250.0
 jump_velocity = 500.0
+acceleration = 5.0
+deceleration = 7.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(7, -15)

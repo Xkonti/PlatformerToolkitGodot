@@ -2,6 +2,8 @@ extends CharacterBody2D
 
 @export_range(100.0, 1000.0) var speed: float = 300.0
 @export_range(100.0, 1000.0) var jump_velocity: float = 400.0
+@export_range(0.0, 100.0) var acceleration: float = 1.0
+@export_range(0.0, 100.0) var deceleration: float = 1.0
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 var facing_right_x_offset: float = 0
@@ -26,9 +28,9 @@ func _physics_process(delta):
 	# As good practice, you should replace UI actions with custom gameplay actions.
 	var direction = Input.get_axis("ui_left", "ui_right")
 	if direction:
-		velocity.x = direction * speed
+		velocity.x = move_toward(velocity.x, direction * speed, acceleration * speed * delta)
 	else:
-		velocity.x = move_toward(velocity.x, 0, speed)
+		velocity.x = move_toward(velocity.x, 0, deceleration * speed * delta)
 	if direction > 0:
 		facing_right = true
 	elif direction < 0:
