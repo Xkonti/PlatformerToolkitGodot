@@ -20,6 +20,7 @@ var is_jumping: bool = false
 var was_on_floor: bool = false
 var is_coyote: bool = false
 var is_jump_buffer: bool = false
+var is_playing_step: bool = false
 
 @onready var coyote_timer: Timer = $CoyoteTimer
 @onready var jump_buffer_timer: Timer = $JumpBufferTimer
@@ -35,6 +36,12 @@ var facing_right: bool = true
 @onready var run_particles: GPUParticles2D = $RunParticles
 @onready var jump_particles: GPUParticles2D = $JumpParticles
 @onready var land_particles: GPUParticles2D = $JumpParticles
+
+# Sounds
+@onready var jump_player: AudioStreamPlayer2D = $JumpPlayer
+@onready var land_player: AudioStreamPlayer2D = $LandPlayer
+@onready var step_player: AudioStreamPlayer2D = $StepPlayer
+
 
 func _ready():	
 	facing_right_x_offset = sprite.position.x
@@ -75,8 +82,7 @@ func _physics_process(delta):
 
 		if Input.is_action_just_pressed("ui_accept"):
 			if is_coyote:
-				velocity.y = -jump_velocity
-				is_jumping = true
+				jump()
 				is_coyote = false
 				coyote_timer.stop()
 			elif not is_jump_buffer:
@@ -88,6 +94,7 @@ func _physics_process(delta):
 		else:
 			velocity += gravity * delta
 
+		# Released jump - increase gravity
 		if velocity.y < 0 and Input.is_action_just_released("ui_accept"):
 			velocity.y = velocity.y * jump_release_stop_multiplier
 
@@ -119,20 +126,30 @@ func _process(_delta):
 	# Update the animation
 	run_particles.emitting = false
 	if is_on_floor():
+		# LANDING DETECTED!
 		if not was_on_floor:
 			land_particles.emitting = true
 			animation_player.play("land")
+			land_player.pitch_scale = randf_range(0.8, 1.2)
+			land_player.play()
 
 		if velocity.x != 0:
 			sprite.play("run")
 			run_particles.emitting = true
+			if not is_playing_step:
+				step_player.pitch_scale = randf_range(0.85, 1.15)
+				step_player.play()
+				is_playing_step = true
 		else:
 			sprite.play("idle")
 
 	else:
+		# JUMP DETECTED!
 		if was_on_floor and is_jumping:
 			jump_particles.emitting = true
 			animation_player.play("jump")
+			jump_player.pitch_scale = randf_range(0.8, 1.2)
+			jump_player.play()
 
 		if velocity.y < 0:
 			sprite.play("jump")
@@ -158,3 +175,7 @@ func start_jump_buffer():
 
 func _on_jump_buffer_timer_timeout():
 	is_jump_buffer = false
+
+
+func _on_step_player_finished():
+	is_playing_step = false
