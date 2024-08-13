@@ -2,7 +2,7 @@
 
 A player controller that implements the player controller with nearly all the features of the [GMTK Platformer Toolkit](https://gmtk.itch.io/platformer-toolkit).
 
-[Screenshot of the player jumping](screenshot.png)
+![Screenshot of the player jumping](screenshot.png)
 
 ## Features
 
