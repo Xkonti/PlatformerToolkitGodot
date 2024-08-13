@@ -32,6 +32,8 @@ var facing_right: bool = true
 
 # Particles
 @onready var run_particles: GPUParticles2D = $RunParticles
+@onready var jump_particles: GPUParticles2D = $JumpParticles
+@onready var land_particles: GPUParticles2D = $JumpParticles
 
 func _ready():	
 	facing_right_x_offset = sprite.position.x
@@ -45,13 +47,11 @@ func _physics_process(delta):
 		is_jumping = false
 
 		if is_jump_buffer and not was_on_floor:
-			velocity.y = -jump_velocity
-			is_jumping = true
+			jump()
 			is_jump_buffer = false
 			jump_buffer_timer.stop()
 		elif Input.is_action_just_pressed("ui_accept"):
-			velocity.y = -jump_velocity
-			is_jumping = true
+			jump()
 
 		var direction = Input.get_axis("ui_left", "ui_right")
 		if direction:
@@ -119,6 +119,9 @@ func _process(_delta):
 	# Update the animation
 	run_particles.emitting = false
 	if is_on_floor():
+		if not was_on_floor:
+			land_particles.emitting = true
+
 		if velocity.x != 0:
 			sprite.play("run")
 			run_particles.emitting = true
@@ -133,10 +136,10 @@ func _process(_delta):
 
 
 # Initiate jump if pressed jump button
-func try_jump():
-	if Input.is_action_just_pressed("ui_accept"):
-			velocity.y = -jump_velocity
-			is_jumping = true
+func jump():
+	velocity.y = -jump_velocity
+	is_jumping = true
+	jump_particles.emitting = true
 
 func start_coyote(delta):
 	coyote_timer.start(coyote_duration - delta)

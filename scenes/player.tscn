@@ -9,33 +9,6 @@
 [ext_resource type="Texture2D" uid="uid://cqvullwg1rkdc" path="res://assets/sprites/15-Dust/dust_01_f2.png" id="7_we5xx"]
 [ext_resource type="Texture2D" uid="uid://cea3ghwyp0db8" path="res://assets/sprites/15-Dust/dust_01_f3.png" id="8_if7sv"]
 
-[sub_resource type="Curve" id="Curve_6wktw"]
-_data = [Vector2(0, 0), 0.0, 0.570616, 0, 0, Vector2(0.386316, 1), 0.0228217, 0.0228217, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
-point_count = 3
-
-[sub_resource type="CurveTexture" id="CurveTexture_am578"]
-width = 32
-curve = SubResource("Curve_6wktw")
-
-[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_ghnnw"]
-particle_flag_disable_z = true
-emission_shape_offset = Vector3(0, -1, 0)
-emission_shape = 3
-emission_box_extents = Vector3(6, 3, 1)
-angle_min = -180.0
-angle_max = 180.0
-gravity = Vector3(0, -75, 0)
-alpha_curve = SubResource("CurveTexture_am578")
-
-[sub_resource type="AnimatedTexture" id="AnimatedTexture_juv2i"]
-frames = 3
-frame_0/texture = ExtResource("6_r0xyd")
-frame_0/duration = 0.1
-frame_1/texture = ExtResource("7_we5xx")
-frame_1/duration = 0.1
-frame_2/texture = ExtResource("8_if7sv")
-frame_2/duration = 0.1
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_cjwi6"]
 atlas = ExtResource("1_88t77")
 region = Rect2(0, 0, 78, 58)
@@ -206,6 +179,38 @@ animations = [{
 "speed": 10.0
 }]
 
+[sub_resource type="Curve" id="Curve_mh4jk"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.249474, 1), 0.0, 0.0, 0, 0, Vector2(0.432632, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_hokxy"]
+width = 32
+curve = SubResource("Curve_mh4jk")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_ghnnw"]
+particle_flag_disable_z = true
+emission_shape_offset = Vector3(0, -1, 0)
+emission_shape = 3
+emission_box_extents = Vector3(6, 3, 1)
+angle_min = -180.0
+angle_max = 180.0
+direction = Vector3(0, -1, 0)
+spread = 63.176
+initial_velocity_min = 40.38
+initial_velocity_max = 46.15
+gravity = Vector3(0, 100, 0)
+scale_min = 0.8
+alpha_curve = SubResource("CurveTexture_hokxy")
+
+[sub_resource type="AnimatedTexture" id="AnimatedTexture_juv2i"]
+frames = 3
+frame_0/texture = ExtResource("6_r0xyd")
+frame_0/duration = 0.1
+frame_1/texture = ExtResource("7_we5xx")
+frame_1/duration = 0.1
+frame_2/texture = ExtResource("8_if7sv")
+frame_2/duration = 0.1
+
 [node name="Player" type="CharacterBody2D"]
 script = ExtResource("1_7srcc")
 speed = 250.0
@@ -218,13 +223,6 @@ gravity_fall_multiplier = 2.5
 vertical_terminal_velocity = 750.0
 jump_release_stop_multiplier = 0.6
 
-[node name="RunParticles" type="GPUParticles2D" parent="."]
-emitting = false
-process_material = SubResource("ParticleProcessMaterial_ghnnw")
-texture = SubResource("AnimatedTexture_juv2i")
-lifetime = 0.3
-fixed_fps = 20
-
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(7, -15)
 sprite_frames = SubResource("SpriteFrames_0imav")
@@ -232,6 +230,33 @@ animation = &"idle"
 autoplay = "idle"
 frame = 8
 frame_progress = 0.955633
+
+[node name="RunParticles" type="GPUParticles2D" parent="."]
+emitting = false
+process_material = SubResource("ParticleProcessMaterial_ghnnw")
+texture = SubResource("AnimatedTexture_juv2i")
+lifetime = 0.3
+fixed_fps = 20
+
+[node name="JumpParticles" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 16
+process_material = SubResource("ParticleProcessMaterial_ghnnw")
+texture = SubResource("AnimatedTexture_juv2i")
+lifetime = 0.3
+one_shot = true
+explosiveness = 0.86
+fixed_fps = 20
+
+[node name="LandParticles" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 16
+process_material = SubResource("ParticleProcessMaterial_ghnnw")
+texture = SubResource("AnimatedTexture_juv2i")
+lifetime = 0.3
+one_shot = true
+explosiveness = 0.86
+fixed_fps = 20
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
 visible = false
