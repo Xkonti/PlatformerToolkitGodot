@@ -10,6 +10,7 @@ extends CharacterBody2D
 @export_range(0.0, 10.0) var gravity_multiplier: float = 1.0
 @export_range(0.0, 10.0) var gravity_fall_multiplier: float = 2.0
 @export_range(0.0, 2000.0) var vertical_terminal_velocity: float = 300.0
+@export_range(0.0, 1.0) var jump_release_stop_multiplier: float = 0.5
 
 
 var is_jumping: bool = false
@@ -53,6 +54,9 @@ func _physics_process(delta):
 			velocity += gravity * gravity_fall_multiplier * delta
 		else:
 			velocity += gravity * delta
+
+		if velocity.y < 0 and Input.is_action_just_released("ui_accept"):
+			velocity.y = velocity.y * jump_release_stop_multiplier
 
 		# Limit vertical velocity
 		velocity.y = clampf(velocity.y, -9999999.0, vertical_terminal_velocity)
