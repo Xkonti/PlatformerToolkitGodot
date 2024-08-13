@@ -3,6 +3,8 @@ extends CharacterBody2D
 @export_range(100.0, 1000.0) var speed: float = 300.0
 @export_range(0.0, 100.0) var acceleration: float = 1.0
 @export_range(0.0, 100.0) var deceleration: float = 1.0
+@export_range(0.0, 100.0) var air_acceleration: float = 0.8
+@export_range(0.0, 100.0) var air_deceleration: float = 0.8
 
 @export_range(100.0, 1000.0) var jump_velocity: float = 400.0
 @export_range(0.0, 10.0) var gravity_multiplier: float = 1.0
@@ -12,13 +14,11 @@ extends CharacterBody2D
 
 var is_jumping: bool = false
 
-
-
 # Animation
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 var facing_right_x_offset: float = 0
 var facing_left_x_offset: float = 0
-var facing_right: bool = true	
+var facing_right: bool = true
 
 func _ready():	
 	facing_right_x_offset = sprite.position.x
@@ -30,9 +30,19 @@ func _physics_process(delta):
 	if is_on_floor():
 		is_jumping = false
 
-	if Input.is_action_just_pressed("ui_accept"):
-		velocity.y = -jump_velocity
-		is_jumping = true
+		if Input.is_action_just_pressed("ui_accept"):
+			velocity.y = -jump_velocity
+			is_jumping = true
+
+		var direction = Input.get_axis("ui_left", "ui_right")
+		if direction:
+			velocity.x = move_toward(velocity.x, direction * speed, acceleration * speed * delta)
+		else:
+			velocity.x = move_toward(velocity.x, 0, deceleration * speed * delta)
+		if direction > 0:
+			facing_right = true
+		elif direction < 0:
+			facing_right = false
 
 	# In air
 	else:
@@ -47,17 +57,16 @@ func _physics_process(delta):
 		# Limit vertical velocity
 		velocity.y = clampf(velocity.y, -9999999.0, vertical_terminal_velocity)
 
-	# Get the input direction and handle the movement/deceleration.
-	# As good practice, you should replace UI actions with custom gameplay actions.
-	var direction = Input.get_axis("ui_left", "ui_right")
-	if direction:
-		velocity.x = move_toward(velocity.x, direction * speed, acceleration * speed * delta)
-	else:
-		velocity.x = move_toward(velocity.x, 0, deceleration * speed * delta)
-	if direction > 0:
-		facing_right = true
-	elif direction < 0:
-		facing_right = false
+		var direction = Input.get_axis("ui_left", "ui_right")
+		if direction:
+			velocity.x = move_toward(velocity.x, direction * speed, air_acceleration * speed * delta)
+		else:
+			velocity.x = move_toward(velocity.x, 0, air_deceleration * speed * delta)
+		if direction > 0:
+			facing_right = true
+		elif direction < 0:
+			facing_right = false
+	
 
 	move_and_slide()
 
