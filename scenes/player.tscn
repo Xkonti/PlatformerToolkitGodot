@@ -1,10 +1,40 @@
-[gd_scene load_steps=28 format=3 uid="uid://ckmxyi37q8vqx"]
+[gd_scene load_steps=35 format=3 uid="uid://ckmxyi37q8vqx"]
 
 [ext_resource type="Script" path="res://scripts/player.gd" id="1_7srcc"]
 [ext_resource type="Texture2D" uid="uid://ip71vs8plrgn" path="res://assets/sprites/01-King Human/Fall (78x58).png" id="1_88t77"]
 [ext_resource type="Texture2D" uid="uid://bhr5jkjrhv5ww" path="res://assets/sprites/01-King Human/Idle (78x58).png" id="2_xs6qg"]
 [ext_resource type="Texture2D" uid="uid://bdhaaej3cun2r" path="res://assets/sprites/01-King Human/Jump (78x58).png" id="3_nv63r"]
 [ext_resource type="Texture2D" uid="uid://b04p3ljt30m0k" path="res://assets/sprites/01-King Human/Run (78x58).png" id="4_vpmtq"]
+[ext_resource type="Texture2D" uid="uid://dokrvqoorqk8g" path="res://assets/sprites/15-Dust/dust_01_f1.png" id="6_r0xyd"]
+[ext_resource type="Texture2D" uid="uid://cqvullwg1rkdc" path="res://assets/sprites/15-Dust/dust_01_f2.png" id="7_we5xx"]
+[ext_resource type="Texture2D" uid="uid://cea3ghwyp0db8" path="res://assets/sprites/15-Dust/dust_01_f3.png" id="8_if7sv"]
+
+[sub_resource type="Curve" id="Curve_6wktw"]
+_data = [Vector2(0, 0), 0.0, 0.570616, 0, 0, Vector2(0.386316, 1), 0.0228217, 0.0228217, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_am578"]
+width = 32
+curve = SubResource("Curve_6wktw")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_ghnnw"]
+particle_flag_disable_z = true
+emission_shape_offset = Vector3(0, -1, 0)
+emission_shape = 3
+emission_box_extents = Vector3(6, 3, 1)
+angle_min = -180.0
+angle_max = 180.0
+gravity = Vector3(0, -75, 0)
+alpha_curve = SubResource("CurveTexture_am578")
+
+[sub_resource type="AnimatedTexture" id="AnimatedTexture_juv2i"]
+frames = 3
+frame_0/texture = ExtResource("6_r0xyd")
+frame_0/duration = 0.1
+frame_1/texture = ExtResource("7_we5xx")
+frame_1/duration = 0.1
+frame_2/texture = ExtResource("8_if7sv")
+frame_2/duration = 0.1
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cjwi6"]
 atlas = ExtResource("1_88t77")
@@ -187,6 +217,13 @@ jump_velocity = 450.0
 gravity_fall_multiplier = 2.5
 vertical_terminal_velocity = 750.0
 jump_release_stop_multiplier = 0.6
+
+[node name="RunParticles" type="GPUParticles2D" parent="."]
+emitting = false
+process_material = SubResource("ParticleProcessMaterial_ghnnw")
+texture = SubResource("AnimatedTexture_juv2i")
+lifetime = 0.3
+fixed_fps = 20
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(7, -15)

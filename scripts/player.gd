@@ -30,6 +30,9 @@ var facing_right_x_offset: float = 0
 var facing_left_x_offset: float = 0
 var facing_right: bool = true
 
+# Particles
+@onready var run_particles: GPUParticles2D = $RunParticles
+
 func _ready():	
 	facing_right_x_offset = sprite.position.x
 	facing_left_x_offset = -sprite.position.x
@@ -114,11 +117,14 @@ func _process(_delta):
 	sprite.position.x = facing_right_x_offset if facing_right else facing_left_x_offset
 
 	# Update the animation
+	run_particles.emitting = false
 	if is_on_floor():
 		if velocity.x != 0:
 			sprite.play("run")
+			run_particles.emitting = true
 		else:
 			sprite.play("idle")
+
 	else:
 		if velocity.y < 0:
 			sprite.play("jump")
