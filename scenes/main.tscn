@@ -9,4 +9,6 @@
 
 [node name="Player" parent="." instance=ExtResource("1_62n0s")]
 position = Vector2(251, -303)
-coyote_duration = 0.06
+coyote_duration = 0.1
+debug_coyote = false
+debug_jump_buffer = false

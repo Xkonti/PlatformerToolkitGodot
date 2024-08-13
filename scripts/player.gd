@@ -53,6 +53,9 @@ extends CharacterBody2D
 ## when intended to jump.
 @export_range(0.0, 1.0) var coyote_duration: float = 0.1
 
+## Display the coyote timer debug label.
+@export var debug_coyote: bool = false
+
 ## The jump buffer duration in seconds.
 ## If the player presses the jump button before the character touches the ground, the
 ## jump buffer will be activated. If the character touches the ground within the time
@@ -60,6 +63,9 @@ extends CharacterBody2D
 ## This is to avoid situations where the player presses "jump" too early. This simply
 ## captures the intent of jumping for the specified amount of time.
 @export_range(0.0, 1.0) var jump_buffer_duration: float = 0.12
+
+## Display the jump buffer timer debug label.
+@export var debug_jump_buffer: bool = false
 
 
 var is_jumping: bool = false ## Is the reason for the player to be in the air due to a jump?
@@ -88,24 +94,57 @@ var facing_right: bool = true ## Is the player facing right? (sprite flipping)
 @onready var step_player: AudioStreamPlayer2D = $StepPlayer
 var is_playing_step: bool = false ## Is the step sound already playing?
 
+# Debug
+@onready var coyote_label: Label = $CoyoteDebug
+@onready var jump_buffer_label: Label = $JumpBufferDebug
+
+# Signals
+signal jumped() ## Emitted when the player jumps.
+signal landed() ## Emitted when the player lands.
+signal coyote_started() ## Emitted when the coyote timer starts.
+signal coyote_stopped() ## Emitted when the coyote timer stops not used.
+signal coyote_used() ## Emitted when the player jumps due to the coyote timer.
+signal jump_buffer_started() ## Emitted when the jump buffer timer starts.
+signal jump_buffer_stopped() ## Emitted when the jump buffer timer stops not used.
+signal jump_buffer_used() ## Emitted when the player jumps due to the jump buffer timer.
+
 
 func _ready():
+	# Engine.time_scale = 0.2
 	# Capture the x offset of the sprite in case the player graphics
 	# is not in the center of the sprite.
 	facing_right_x_offset = sprite.position.x
 	facing_left_x_offset = -sprite.position.x
-	# Engine.time_scale = 0.1
+
+	jumped.connect(_on_jumped, CONNECT_DEFERRED)
+	landed.connect(_on_landed, CONNECT_DEFERRED)
+
+	if debug_coyote:
+		coyote_label.visible = false
+		coyote_started.connect(_on_coyote_started_debug, CONNECT_DEFERRED)
+		coyote_stopped.connect(_on_coyote_stopped_debug, CONNECT_DEFERRED)
+		coyote_used.connect(_on_coyote_used_debug, CONNECT_DEFERRED)
+
+	if debug_jump_buffer:
+		jump_buffer_label.visible = false
+		jump_buffer_started.connect(_on_jump_buffer_started_debug, CONNECT_DEFERRED)
+		jump_buffer_stopped.connect(_on_jump_buffer_stopped_debug, CONNECT_DEFERRED)
+		jump_buffer_used.connect(_on_jump_buffer_used_debug, CONNECT_DEFERRED)
+
 
 func _physics_process(delta):
 
 	# On ground
 	if is_on_floor():
 		is_jumping = false
+		if not was_on_floor:
+			landed.emit()
 
 		if is_jump_buffer and not was_on_floor:
-			jump()
 			is_jump_buffer = false
 			jump_buffer_timer.stop()
+			jump_buffer_used.emit()
+			jump()
 		elif Input.is_action_just_pressed("ui_accept"):
 			jump()
 
@@ -130,9 +169,10 @@ func _physics_process(delta):
 
 		if Input.is_action_just_pressed("ui_accept"):
 			if is_coyote:
-				jump()
 				is_coyote = false
 				coyote_timer.stop()
+				coyote_used.emit()
+				jump()
 			elif not is_jump_buffer:
 				start_jump_buffer()
 
@@ -171,16 +211,9 @@ func _process(_delta):
 	sprite.flip_h = not facing_right
 	sprite.position.x = facing_right_x_offset if facing_right else facing_left_x_offset
 
-	# Update the animation
+	# Update the animations and run effects
 	run_particles.emitting = false
 	if is_on_floor():
-		# LANDING DETECTED!
-		if not was_on_floor:
-			land_particles.emitting = true
-			animation_player.play("land")
-			land_player.pitch_scale = randf_range(0.8, 1.2)
-			land_player.play()
-
 		if velocity.x != 0:
 			sprite.play("run")
 			run_particles.emitting = true
@@ -192,38 +225,81 @@ func _process(_delta):
 			sprite.play("idle")
 
 	else:
-		# JUMP DETECTED!
-		if was_on_floor and is_jumping:
-			jump_particles.emitting = true
-			animation_player.play("jump")
-			jump_player.pitch_scale = randf_range(0.8, 1.2)
-			jump_player.play()
-
 		if velocity.y < 0:
 			sprite.play("jump")
 		else:
 			sprite.play("fall")
 
+	if debug_coyote and is_coyote:
+		coyote_label.text = "C: %.3fs" % coyote_timer.time_left
+
+	if debug_jump_buffer and is_jump_buffer:
+		jump_buffer_label.text = "J: %.3fs" % jump_buffer_timer.time_left
 
 # Initiate jump if pressed jump button
 func jump():
 	velocity.y = -jump_velocity
 	is_jumping = true
+	jumped.emit()
 
 func start_coyote(delta):
-	coyote_timer.start(coyote_duration - delta)
+	print("Starting coyote with duration of %.3fs" % coyote_duration)
+	print("Delta is %.3fs" % delta)
+	var time_left = coyote_duration - delta
+	print("Time left is %.3fs" % time_left)
+	coyote_timer.start(time_left)
 	is_coyote = true
+	coyote_started.emit()
 
 func _on_coyote_timer_timeout():
 	is_coyote = false
+	coyote_stopped.emit()
 
 func start_jump_buffer():
 	jump_buffer_timer.start(jump_buffer_duration)
 	is_jump_buffer = true
+	jump_buffer_started.emit()
 
 func _on_jump_buffer_timer_timeout():
 	is_jump_buffer = false
+	jump_buffer_stopped.emit()
 
 
 func _on_step_player_finished():
 	is_playing_step = false
+
+func _on_jumped():
+	jump_particles.emitting = true
+	animation_player.play("jump")
+	jump_player.pitch_scale = randf_range(0.8, 1.2)
+	jump_player.play()
+
+func _on_landed():
+	land_particles.emitting = true
+	animation_player.play("land")
+	land_player.pitch_scale = randf_range(0.8, 1.2)
+	land_player.play()
+
+func _on_coyote_started_debug():
+	coyote_label.text = "C: %.3fs" % coyote_timer.time_left
+	coyote_label.visible = true
+
+func _on_coyote_stopped_debug():
+	coyote_label.text = "C: -"
+	coyote_label.visible = false
+
+func _on_coyote_used_debug():
+	coyote_label.text = "C: U"
+	coyote_label.visible = false
+
+func _on_jump_buffer_started_debug():
+	jump_buffer_label.text = "J: %.3fs" % jump_buffer_timer.time_left
+	jump_buffer_label.visible = true
+
+func _on_jump_buffer_stopped_debug():
+	jump_buffer_label.text = "J: -"
+	jump_buffer_label.visible = false
+
+func _on_jump_buffer_used_debug():
+	jump_buffer_label.text = "J: U"
+	jump_buffer_label.visible = false

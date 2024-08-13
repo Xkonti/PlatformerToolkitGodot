@@ -294,6 +294,9 @@ _data = {
 
 [node name="Player" type="CharacterBody2D"]
 script = ExtResource("1_7srcc")
+coyote_duration = 0.5
+debug_coyote = true
+debug_jump_buffer = true
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(7, -15)
@@ -312,7 +315,6 @@ fixed_fps = 20
 
 [node name="JumpParticles" type="GPUParticles2D" parent="."]
 emitting = false
-amount = 16
 process_material = SubResource("ParticleProcessMaterial_ghnnw")
 texture = SubResource("AnimatedTexture_juv2i")
 lifetime = 0.3
@@ -363,6 +365,22 @@ volume_db = -9.0
 
 [node name="StepPlayer" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("11_3qc72")
+
+[node name="CoyoteDebug" type="Label" parent="."]
+visible = false
+offset_left = 19.0
+offset_top = -43.0
+offset_right = 87.0
+offset_bottom = -20.0
+text = "C: 0.020s"
+
+[node name="JumpBufferDebug" type="Label" parent="."]
+visible = false
+offset_left = 19.0
+offset_top = -24.0
+offset_right = 82.0
+offset_bottom = -1.0
+text = "J: 0.108s"
 
 [connection signal="timeout" from="CoyoteTimer" to="." method="_on_coyote_timer_timeout"]
 [connection signal="timeout" from="JumpBufferTimer" to="." method="_on_jump_buffer_timer_timeout"]
