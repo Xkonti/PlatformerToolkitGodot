@@ -26,6 +26,7 @@ var is_jump_buffer: bool = false
 
 # Animation
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
+@onready var animation_player: AnimationPlayer = $AnimationPlayer
 var facing_right_x_offset: float = 0
 var facing_left_x_offset: float = 0
 var facing_right: bool = true
@@ -109,7 +110,6 @@ func _physics_process(delta):
 	move_and_slide()
 
 func _process(_delta):
-
 	# Animate and adjust the sprite
 
 	# Flip the sprite depending on the facing direction
@@ -121,6 +121,7 @@ func _process(_delta):
 	if is_on_floor():
 		if not was_on_floor:
 			land_particles.emitting = true
+			animation_player.play("land")
 
 		if velocity.x != 0:
 			sprite.play("run")
@@ -129,6 +130,10 @@ func _process(_delta):
 			sprite.play("idle")
 
 	else:
+		if was_on_floor and is_jumping:
+			jump_particles.emitting = true
+			animation_player.play("jump")
+
 		if velocity.y < 0:
 			sprite.play("jump")
 		else:
@@ -139,7 +144,6 @@ func _process(_delta):
 func jump():
 	velocity.y = -jump_velocity
 	is_jumping = true
-	jump_particles.emitting = true
 
 func start_coyote(delta):
 	coyote_timer.start(coyote_duration - delta)
